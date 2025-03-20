@@ -1,0 +1,93 @@
+Option Explicit
+Public lngRow As Long
+Dim Shpm As New Sheet5
+Dim Shkc As New Sheet4
+
+Private Sub Worksheet_SelectionChange(ByVal Target As Range)
+  Dim uRange, mRange As Range
+  
+
+  '避开标题行
+  If Target.Row < 3 Or Target.Column <> 2 Then
+     lngRow = 2
+     Exit Sub
+  End If
+  
+    '将单元格地址赋值给变量
+     lngRow = Target.Row
+  
+     Set mRange = Shpm.Range("B" & Target.Row)
+     Set uRange = Shpm.Range("B" & Target.Row - 1)
+
+  '双击第六列或是第七列时显示时间窗体
+  If uRange.Value <> "" And uRange.Value <> "类 别" And mRange = "" Then
+     Call CopyFormat(Target.Row)
+  End If
+End Sub
+
+' 功能：复制单元格格式及公式
+Sub CopyFormat(ByVal intTarget As Long)
+
+    Application.ScreenUpdating = False
+    
+    Shpm.Unprotect Password:=strPass
+    Shkc.Unprotect Password:=strPass
+
+    Range("A" & intTarget - 1 & ":G" & intTarget - 1).AutoFill Destination:= _
+    Range("A" & intTarget - 1 & ":G" & intTarget), Type:=xlFillDefault
+    Range("b" & intTarget & ":e" & intTarget).ClearContents
+    Shpm.Range("B" & intTarget).Select
+
+    '复制库存表数据表格
+    Shkc.Range("A" & intTarget - 1 & ":j" & intTarget - 1).AutoFill Destination:= _
+    Shkc.Range("A" & intTarget - 1 & ":j" & intTarget), Type:=xlFillDefault
+    Shpm.Protect Password:=strPass, AllowFiltering:=True
+    Shkc.Protect Password:=strPass, AllowFiltering:=True
+
+   Application.ScreenUpdating = True
+End Sub
+
+Sub delRangeRow()
+    Call DelRow(lngRow)
+End Sub
+
+'功能：品名表删除数据操作过程
+Public Sub DelRow(ByVal Target As Long)
+ On Error Resume Next
+
+ Dim MyValue
+ 
+' 删除所选单元格整行
+  If Target < 3 Then
+     MsgBox "系统表行，不能删除！", vbExclamation, "系统提示:"
+     Exit Sub
+  End If
+  
+  MyValue = InputBox("请输入操作密码！", "删除操作密码:")
+  If MyValue <> strPass Then
+     MsgBox "操作密码为空或输入不正确，请与管理员[谭鸿军]联系！ ", vbExclamation, "操作提示："
+     Exit Sub
+  Else
+      '删除确认
+     If MsgBox("删除将导致数据混乱，请确认是否需要删除本行记录!", vbOKCancel + vbExclamation, "系统提示:") = vbCancel Then Exit Sub
+    
+     '关闭屏幕刷新
+     Application.ScreenUpdating = False
+     With Shpm
+         .Unprotect Password:=strPass
+         .Range("B" & Target).EntireRow.Delete
+         .Protect Password:=strPass, AllowFiltering:=True
+         .Range("B" & Target).Select
+     End With
+     
+     With Shkc
+         .Unprotect Password:=strPass
+         .Range("B" & Target).EntireRow.Delete
+         .Protect Password:=strPass, AllowFiltering:=True
+     End With
+     '打开屏幕刷新
+    Application.ScreenUpdating = True
+  End If
+
+End Sub
+
