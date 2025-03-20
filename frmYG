@@ -1,0 +1,26 @@
+Dim lisValue As String
+
+Private Sub CommandButton3_Click()
+  Dim iRow As Long
+  iRow = Sheets("基础数据").Range("A65536").End(xlUp).Row
+  
+  If txtYG = "" Then
+     MsgBox "请输入员工信息！", vbInformation, "系统提示："
+     txtYG.SetFocus: Exit Sub
+  End If
+
+' If MsgBox("请确认添加信息，点确定添加！", vbOKCancel + vbInformation, "添加提示:") = vbCancel Then Exit Sub
+    Sheets("基础数据").Cells(iRow + 1, 1) = txtYG.Text
+    txtYG = "": txtYG.SetFocus
+End Sub
+
+Private Sub CommandButton4_Click()
+   If lisValue = "" Then Exit Sub
+   If MsgBox("你确定要删除【" & Sheets("基础数据").Range("A" & lisValue) & "】信息资料吗！", _
+             vbOKCancel + vbInformation, "系统操作提示:") = vbCancel Then Exit Sub
+      Sheets("基础数据").Range("A" & lisValue).Delete Shift:=xlUp
+End Sub
+
+Private Sub ListBox1_Click()
+   lisValue = ListBox1.ListIndex + 1
+End Sub
