@@ -1,0 +1,76 @@
+Option Explicit
+Public Const strPass = "tanhongjun"
+
+'功能:显示并打开计算器工具
+Sub CallCalculate()
+  Application.ActivateMicrosoftApp Index:=0
+End Sub
+
+
+'打开员工信息窗体
+Sub OpenYG(): frmYG.Show: End Sub
+
+'打开部门信息窗体
+Sub OpenBM(): frmBM.Show: End Sub
+
+'打开库存查询窗体
+Sub OpenfrmFind()
+   frmFind.Show
+End Sub
+
+'保存并退出工作簿
+Sub ExitWorkbookAndSave()
+  If MsgBox("你确定要退出慧谷物管系统？ ", vbOKCancel + vbExclamation, "系统提示：") = vbCancel Then Exit Sub
+     Worksheets("主页").TextTs.Visible = True
+     Call sBackXls                 '备份当前数据库
+
+     'Range("A1").Select ' Sheets("主页").
+     'ActiveWorkbook.Save  '保存工作簿
+     Application.Quit     '退出应用程序
+End Sub
+
+Sub 图片23_单击()
+   MsgBox "该项还未完成,请选择其它操作！", vbExclamation, "系统提示："
+End Sub
+
+'预览打印当前报表
+Sub PrintPreview()
+    ActiveWindow.SelectedSheets.PrintPreview
+End Sub
+
+'筛选数据
+Sub SFilter()
+    ActiveSheet.Unprotect Password:=strPass
+    Range("2:2").Select
+    Selection.AutoFilter
+    Range("B1").Select
+    ActiveSheet.Protect Password:=strPass, AllowFiltering:=True
+End Sub
+
+Sub sBackXls()
+    Dim TempByte  As Byte       '临时存放字节数据
+    Dim strCurrWorkbook  As String     '当前工作簿名及完整路径
+    Dim strBackWorkbook  As String     '备份文件名及所在路径
+    Dim I                As Long       '定义循环变量
+    
+    '赋值当前工作簿的完整路径给字符串变量
+    strCurrWorkbook = ThisWorkbook.Path & "\" & ThisWorkbook.Name
+    '赋值备份的数据库及完整路径
+    strBackWorkbook = ThisWorkbook.Path & "\备份 " & ThisWorkbook.Name
+    '打开当前要备份的工作簿,准备读取（Read）字节内容
+    Open strCurrWorkbook For Binary Access Read As #1
+    '打开要备份的工作簿,准备写（Write）前面读取的当前工作簿内容
+    '因为备份文件不存在,会在指定路径创建一个文件
+    Open strBackWorkbook For Binary Access Write As #2
+    '从头向末尾读取当前工作簿字节并同时写入到备份工作簿文件
+    For I = 1 To LOF(1)
+        Get #1, I, TempByte    'Get语句：读取文件中数据
+        Put #2, I, TempByte    'Put语句：将数据写入文件
+    Next I
+    
+    '关闭文件
+    Close #1
+    Close #2
+End Sub
+
+
