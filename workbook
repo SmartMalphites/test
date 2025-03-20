@@ -1,0 +1,20 @@
+Option Explicit
+
+Private Sub Workbook_Open()
+  
+   Worksheets("主页").TextTs.Visible = False
+   Worksheets("主页").TextTs = "  正在进行数据备份保存,请稍候......"
+   Call HideAllBars
+End Sub
+
+Private Sub Workbook_BeforeClose(Cancel As Boolean)
+   
+   Worksheets("主页").Activate   '返回主页
+   Range("A1").Select            '选择A1单元格
+
+   Worksheets("主页").TextTs.Visible = True
+   Call sBackXls                 '备份当前数据库
+   Call ShowAllBars              '恢复常规设置
+   Worksheets("主页").TextTs.Visible = False
+   ThisWorkbook.Save             '保存当前数据库
+End Sub
