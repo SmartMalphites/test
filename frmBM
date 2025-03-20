@@ -1,0 +1,32 @@
+Option Explicit
+
+Dim lisValue As String
+Dim Shjc As New Sheet3
+
+Private Sub CommandButton3_Click()
+  Dim iRow As Long
+  iRow = Shjc.Range("B65536").End(xlUp).Row
+
+  If txtBM = "" Then
+     MsgBox "请输入部门信息！", vbInformation, "系统提示："
+     txtBM.SetFocus: Exit Sub
+  End If
+
+' If MsgBox("请确认添加信息，点确定添加！", vbOKCancel + vbInformation, "添加提示:") = vbCancel Then Exit Sub
+    Shjc.Cells(iRow + 1, 2) = txtBM.Text
+    txtBM = "": txtBM.SetFocus
+End Sub
+
+Private Sub CommandButton4_Click()
+   If lisValue = "" Then Exit Sub
+   If MsgBox("你确定要删除【" & Shjc.Range("B" & lisValue) & "】信息资料吗！", _
+             vbOKCancel + vbInformation, "系统操作提示:") = vbCancel Then Exit Sub
+      Shjc.Range("B" & lisValue).Delete Shift:=xlUp
+      
+End Sub
+
+Private Sub ListBox2_Click()
+   lisValue = ListBox2.ListIndex + 1
+End Sub
+
+
