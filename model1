@@ -1,0 +1,93 @@
+Public cmdBarFlag() As Boolean         '标识工具条状态
+
+Private Declare Function FindWindow Lib "user32" Alias "FindWindowA" (ByVal lpClassName As String, ByVal lpWindowName As String) As Long
+Private Declare Function DrawMenuBar Lib "user32" (ByVal hWnd As Long) As Long
+Private Declare Function GetWindowLong Lib "user32" Alias "GetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long) As Long
+Private Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
+
+Private Const WS_CAPTION As Long = &HC00000
+Private Const GWL_STYLE = (-16)
+Private Const WS_EX_TOOLWINDOW As Long = &H80
+Private Const WS_THICKFRAME = &H40000
+Private Const WS_SIZEBOX = WS_THICKFRAME
+
+'隐藏 Excel 标题栏
+Sub hideTitleBar(oFrame As Object)
+    Dim hWnd As Long, lStyle As Long, hMenu As Long
+    
+    hWnd = FindWindow("XLMAIN", oFrame.Caption)
+    lStyle = GetWindowLong(hWnd, GWL_STYLE)
+
+    SetWindowLong hWnd, GWL_STYLE, lStyle And Not WS_CAPTION 'And Not WS_EX_TOOLWINDOW And Not WS_SIZEBOX
+    DrawMenuBar hWnd
+End Sub
+
+'隐藏所有工具栏
+Public Sub HideAllBars()
+Dim I As Integer
+On Error Resume Next
+    With Application
+        .ScreenUpdating = False         '关闭屏幕刷新
+        .EnableCancelKey = xlDisabled   '对“取消”键的捕获功能完全无效
+      ' .WindowState = xlNormal         '窗口状态
+        .DisplayFormulaBar = False      '隐藏公式编辑器
+        .DisplayStatusBar = False       '隐藏状态栏
+        .Assistant.On = False           '关闭Office助手
+    End With
+
+    With ActiveWindow
+        .DisplayHeadings = False            '隐藏行标、列标
+        .DisplayHorizontalScrollBar = False '隐藏水平滚动条
+        .DisplayVerticalScrollBar = False   '隐藏垂直滚动条
+        .DisplayWorkbookTabs = False        '隐藏工作表标签
+        .ScrollRow = 1
+    End With
+
+  ' 使得工具条不可见
+    With Application.CommandBars
+        ReDim cmdBarFlag(.count - 1)
+        .Item(1).Enabled = False
+        For I = 2 To .count
+            If .Item(I).Visible = True Then
+                cmdBarFlag(I - 1) = True
+                .Item(I).Visible = False
+            End If
+        Next I
+    End With
+    
+    Call hideTitleBar(Application)            ' 隐藏 Excel 标题栏
+End Sub
+
+'显示所有工具栏
+Public Sub ShowAllBars()
+  Dim I As Integer
+  On Error Resume Next
+    
+    With Application
+        .ScreenUpdating = False
+        .WindowState = xlMaximized
+        .DisplayFormulaBar = True
+        
+'        With ActiveWindow
+'            .DisplayHeadings = True
+'            .DisplayHorizontalScrollBar = True
+'            .DisplayVerticalScrollBar = True
+'            .DisplayWorkbookTabs = True
+'        End With
+        
+        With .CommandBars
+            ReDim Preserve cmdBarFlag(.count - 1)
+            
+            .Item(1).Enabled = True
+            .Item(1).Visible = True
+            
+            For I = 2 To .count
+                If cmdBarFlag(I - 1) = True Then .Item(I).Visible = True
+            Next I
+        End With
+        
+        .ThisWorkbook.Save
+        .ScreenUpdating = True
+    End With
+
+End Sub
