@@ -1,0 +1,105 @@
+Option Explicit
+
+Dim strText$, strLen%
+Dim lngRow As Long, n%, m%, n1%
+Dim Shkc As New Sheet4
+
+Private Sub CommandButton1_Click()
+    UserForm_Initialize
+End Sub
+
+'功能：取回列表值
+Private Sub ListView1_DblClick()
+    Dim CurrIndex As Integer
+    On Error Resume Next    ' 改变错误处理的方式。
+
+    CurrIndex = ListView1.SelectedItem.Index
+    If CurrIndex < 0 Then Exit Sub
+    
+    If Left$(Selection.Address, 2) <> "$B" Then
+       MsgBox "你只能添加数据到代号列！", vbInformation, "系统提示："
+       Exit Sub
+    Else
+       Range(Selection.Address) = ListView1.ListItems(CurrIndex).Text
+    End If
+    
+    If Err.Number > 0 Then
+       MsgBox "你只能添加数据到代号列！", vbInformation, "系统提示："
+       Exit Sub
+    End If
+    
+   'Unload Me
+End Sub
+
+Private Sub TextBox1_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
+    Dim I, J As Long
+    strText = textbox1
+    strLen = Len(strText)
+    
+    If strText = "" Then
+        Call ListViewSet
+        For I = 3 To lngRow
+            Call ListItemAdd(I)
+        Next I
+        Exit Sub
+    Else
+    End If
+    
+    Call ListViewSet
+    
+    For J = 3 To lngRow
+        n1 = InStr(Shkc.Cells(J, 3), textbox1.Text)
+        If n1 > 0 Then
+            I = J
+            Call ListItemAdd(I)
+        End If
+    Next J
+
+End Sub
+
+Private Sub UserForm_Activate()
+   UserForm_Initialize
+End Sub
+
+Private Sub UserForm_Initialize()
+   Dim I As Long
+   
+   textbox1 = ""
+   lngRow = Shkc.[A65536].End(xlUp).Row
+    
+   Call ListViewSet
+    
+   For I = 3 To lngRow
+       Call ListItemAdd(I)
+   Next I
+End Sub
+
+'填表
+Sub ListItemAdd(ByVal lngRow As Long)
+   Dim ObjListItem As ListItem
+   If Shkc.Cells(lngRow, 1) = "" Then Exit Sub
+   Set ObjListItem = Me.ListView1.ListItems.Add()
+   With ObjListItem
+       .Text = Shkc.Cells(lngRow, 1)
+       .SubItems(1) = Shkc.Cells(lngRow, 3)
+       .SubItems(2) = Shkc.Cells(lngRow, 4)
+       .SubItems(3) = Shkc.Cells(lngRow, 7)
+     ' .SubItems(4) = Shkc.Cells(lngRow, 8)
+  End With
+End Sub
+
+'制表
+Sub ListViewSet()
+With ListView1
+    .ColumnHeaders.Clear
+    .ListItems.Clear
+       .ColumnHeaders.Add 1, , "代码", ListView1.Width * 0.15
+       .ColumnHeaders.Add 2, , "品名", ListView1.Width * 0.4
+       .ColumnHeaders.Add 3, , "规格", ListView1.Width * 0.22
+       .ColumnHeaders.Add 4, , "库存数", ListView1.Width * 0.2, lvwColumnCenter
+     ' .ColumnHeaders.Add 5, , "单价", ListView1.Width * 0.12, lvwColumnCenter
+    .View = lvwReport
+    .Gridlines = True        '显示网格
+    .FullRowSelect = True    '整行选取
+End With
+End Sub
