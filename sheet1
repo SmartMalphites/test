@@ -1,0 +1,141 @@
+Option Explicit
+
+Dim rkRow As Long
+Dim Shly As New Sheet1
+
+Private Sub Calendar1_Click()
+  ActiveCell.Value = Calendar1.Value
+  Calendar1.Visible = False
+End Sub
+
+
+Private Sub Worksheet_Activate()
+  Calendar1.Visible = False
+End Sub
+
+Private Sub Worksheet_BeforeDoubleClick(ByVal Target As Range, Cancel As Boolean)
+  Dim mTarget As Range
+  Set mTarget = Shly.Range("B" & Target.Row)
+
+ '避开标题行
+  If Target.Row = 2 Then Exit Sub
+
+  '双击第六列或是第七列时显示时间窗体
+  If Target.Column = 11 And mTarget.Value <> "" Then
+     Application.SendKeys "{ESC}"
+     With Calendar1
+         .Width = 146.25
+         .Height = 105.75
+         .Top = ActiveCell.Top '+ ActiveCell.Height
+         .Left = ActiveCell.Left + ActiveCell.Width
+         .Visible = True
+     End With
+  End If
+  
+End Sub
+
+'功能：如果库存查询打开则隐藏
+Private Sub Worksheet_Deactivate()
+  frmFind.Hide
+End Sub
+
+Private Sub Worksheet_SelectionChange(ByVal Target As Range)
+
+  Dim mTarget, upTarget As Range
+  
+  '避开标题行
+   If Target.Row < 3 Then
+      rkRow = 2
+      Exit Sub
+   End If
+   
+   rkRow = Target.Row
+
+  '避开标题行
+  If Target.Row < 3 Then Exit Sub
+  
+     Set mTarget = Shly.Range("B" & Target.Row)
+     Set upTarget = Shly.Range("B" & Target.Row - 1)
+     
+     With Calendar1
+         If IsDate(Target) Then
+            .Value = Target
+         Else
+            .Today
+         End If
+    
+         If Target.Column = 11 And mTarget.Value <> "" Then
+            .Top = ActiveCell.Top ' + ActiveCell.Height
+            .Left = ActiveCell.Left + ActiveCell.Width
+         Else
+            .Visible = False
+         End If
+     End With
+  
+     If Target.Column = 2 And Target.Row > 3 And mTarget.Value = "" And upTarget.Value <> "" Then
+        LyCopyFormat (Target.Row)
+     End If
+  
+End Sub
+
+Sub LyCopyFormat(ByVal intTarget As Integer)
+'
+' 功能：复制单元格格式及公式
+
+ Application.ScreenUpdating = False
+  With Shly
+      .Unprotect Password:=strPass
+      .Range("A" & intTarget - 1 & ":l" & intTarget - 1).AutoFill Destination:= _
+      .Range("A" & intTarget - 1 & ":l" & intTarget), Type:=xlFillDefault
+      .Range("B" & intTarget & ",F" & intTarget & ",I" & intTarget & ":K" & intTarget).ClearContents
+      .Range("B" & intTarget).Select
+      .Protect Password:=strPass, AllowFiltering:=True
+  End With
+ Application.ScreenUpdating = True
+End Sub
+
+Sub delLyRangeRow()
+    Call DelRow(rkRow)
+End Sub
+
+'功能：入库表删除数据操作过程
+Public Sub DelRow(ByVal Target As Long)
+  Dim strRange As String
+  
+  '将品名赋值给变量
+  strRange = Shly.Range("D" & rkRow)
+  
+  '删除所选单元格整行
+  If Target < 3 Then
+     MsgBox "系统表行，不能删除！", vbExclamation, "系统提示:"
+     Exit Sub
+  End If
+  
+  If Len(Shly.Range("B" & rkRow)) = 0 Then Exit Sub
+  
+  '判断如果是第三行并且下一行为空,则保留保式行只是清除内容
+  If Target = 3 And Shly.Range("B" & rkRow + 1) = "" And Shly.Range("B" & rkRow) <> "" Then
+     '删除确认
+     If MsgBox("请确认是否需要删除【 " & strRange & " 】记录！", vbOKCancel + vbExclamation, "系统提示：") = vbCancel Then Exit Sub
+     '不做删除只是清除内容
+    Shly.Range("B" & rkRow & ",F" & rkRow & _
+                           ",I" & rkRow & ":K" & rkRow).ClearContents
+     Exit Sub
+  End If
+  
+  
+  '删除确认
+  If MsgBox("请确认是否需要删除【 " & strRange & " 】记录！", vbOKCancel + vbExclamation, "系统提示：") = vbCancel Then Exit Sub
+
+  '关闭屏幕刷新
+  Application.ScreenUpdating = False
+  With Shly
+      .Unprotect Password:=strPass
+      .Range("B" & Target).EntireRow.Delete
+      .Protect Password:=strPass, AllowFiltering:=True
+  End With
+  '打开屏幕刷新
+  Application.ScreenUpdating = True
+
+End Sub
+
